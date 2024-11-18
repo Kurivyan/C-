@@ -305,7 +305,6 @@ namespace Programm {
 		}
 	
 		public bool Save(string filename){
-			Directory.SetCurrentDirectory("..\\..\\..\\");
 			try{
 				using (StreamWriter sw = new StreamWriter(filename)){
 					var options = new JsonSerializerOptions();
@@ -327,7 +326,7 @@ namespace Programm {
 			}
 		}
 
-		public static bool Load(string filename, ref V1DataArray? ptr){
+		public static bool Load(string filename, ref V1DataArray ptr){
 			try{
 				using (StreamReader sr = new StreamReader(filename)){
 					if (ptr != null)
@@ -353,6 +352,8 @@ namespace Programm {
 				return true;
 			} catch (Exception e){
 				Console.WriteLine(e.Message);
+				ptr.MyArray = Array.Empty<double>();
+				ptr.MyArray2 = Array.Empty<System.Numerics.Complex>();
 				return false;
 			}
 		}
@@ -447,7 +448,7 @@ namespace Programm {
 
 	class Program {
 		static void Main(string[] args) {
-			V1DataArray arr = new V1DataArray("key", DateTime.Now, new double[]{1, 2, 3, 4, 5}, V1DataArray.F);
+			V1DataArray arr = new V1DataArray("key", DateTime.Now, new double[] {1, 2, 3, 4, 5, 6}, V1DataArray.F);
 			arr.Save("file.json");
 
 			V1DataArray arr2 = new V1DataArray("key", DateTime.Now);
