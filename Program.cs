@@ -11,6 +11,7 @@ using System.Net.NetworkInformation;
 using Microsoft.VisualBasic;
 using System.Data;
 using System.ComponentModel;
+using System.Collections;
 
 namespace Programm {
 	struct DataItem {
@@ -39,7 +40,7 @@ namespace Programm {
 		}
 	}
 
-	abstract class V1Data {
+	abstract class V1Data : IEnumerable<DataItem> {
 		public string Key {
 			get;
 			set;
@@ -49,12 +50,10 @@ namespace Programm {
 			set;
 		}
 
-		private int _xLength;
 		public abstract int xLength {
 			get;
 		}
 
-		private(double, double) _MinMaxDifference;
 		public abstract(double, double) MinMaxDifference {
 			get;
 		}
@@ -68,7 +67,14 @@ namespace Programm {
 			Key = key;
 			Date = date;
 		}
-	}
+
+		public abstract IEnumerator<DataItem> GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
 	class V1DataList: V1Data {
 		public List < DataItem > MyList {
@@ -157,8 +163,34 @@ namespace Programm {
 			return res_arr;
 		}
 		public delegate(System.Numerics.Complex, System.Numerics.Complex) FDI(double x);
-		public IEnumerator < DataItem > GetEnumerator() {
-			return MyList.GetEnumerator();
+		public override IEnumerator<DataItem> GetEnumerator() {
+			return new MyListEnumerator(this.MyList);
+		}
+
+		public class MyListEnumerator : IEnumerator<DataItem> {
+			private List<DataItem> _list;
+			private int _position = -1;
+			public MyListEnumerator(List<DataItem> list) {
+				_list = list;
+			}
+			public bool MoveNext() {
+				_position++;
+				return _position < _list.Count;
+			}
+			public void Reset() {
+				_position = -1;
+			}
+			public DataItem Current {
+				get {
+					return _list[_position];
+				}
+			}
+			object IEnumerator.Current {
+				get {
+					return Current;
+				}
+			}
+			public void Dispose() {}
 		}
 	}
 
@@ -212,7 +244,6 @@ namespace Programm {
 				return MyArray.Length;
 			}
 		}
-
 		public override(double, double) MinMaxDifference {
 			get {
 				double min = Double.MaxValue;
@@ -239,9 +270,41 @@ namespace Programm {
 			return this.ToString() + ret_str;
 		}
 		public delegate(System.Numerics.Complex, System.Numerics.Complex) FValues(double x);
+	
+		public override IEnumerator<DataItem> GetEnumerator() {
+			return new MyArrayEnumerator(this.MyArray, this.MyArray2);
+		}
+
+		public class MyArrayEnumerator : IEnumerator<DataItem> {
+			private double[] _array;
+			private System.Numerics.Complex[] _array2;
+			private int _position = -1;
+			public MyArrayEnumerator(double[] array, System.Numerics.Complex[] array2) {
+				_array = array;
+				_array2 = array2;
+			}
+			public bool MoveNext() {
+				_position++;
+				return _position < _array.Length;
+			}
+			public void Reset() {
+				_position = -1;
+			}
+			public DataItem Current {
+				get {
+					return new DataItem(_array[_position], _array2[_position * 2], _array2[_position * 2 + 1]);
+				}
+			}
+			object IEnumerator.Current {
+				get {
+					return Current;
+				}
+			}
+			public void Dispose() {}
+		}
 	}
 
-	class V1MainCollection : List<V1Data> {
+	class V1MainCollection : List<V1Data>, IEnumerable<V1Data> {
 		
 		public V1Data ? this[string str]{
 			get {
@@ -298,12 +361,43 @@ namespace Programm {
 			}
 			return ret_str;
 		}
+		IEnumerator<V1Data> IEnumerable<V1Data>.GetEnumerator() {
+			return new V1MainCollectionEnumerator(this);
+		}
+
+		public class V1MainCollectionEnumerator : IEnumerator<V1Data> {
+			private V1MainCollection _collection;
+			private int _position = -1;
+			public V1MainCollectionEnumerator(V1MainCollection collection) {
+				_collection = collection;
+			}
+			public bool MoveNext(){
+				_position++;
+				return _position < _collection.Count;
+			}
+			public void Reset(){
+				_position = -1;
+			}
+			public V1Data Current{
+				get{
+					return _collection[_position];
+				}
+			}
+			object IEnumerator.Current {
+				get{
+					return Current;
+				}
+			}
+			public void Dispose(){}
+		}
 	}
 
 	class Program {
 		static void Main(string[] args) {
-				V1DataList new_list = new V1DataList("test", DateTime.Now, [1, 2, 2, 2 , 2], V1DataList.F_int);
-				System.Console.WriteLine(new_list.ToLongString("F2")); 
+			V1MainCollection collection = new V1MainCollection(3, 3);
+			foreach(var i in collection){
+				Console.WriteLine(i.ToLongString("F2"));
 			}
 		}
 	}
+}
