@@ -12,6 +12,7 @@ using Microsoft.VisualBasic;
 using System.Data;
 using System.ComponentModel;
 using System.Collections;
+using System.Text.Json;
 
 namespace Programm {
 	struct DataItem {
@@ -302,8 +303,60 @@ namespace Programm {
 			}
 			public void Dispose() {}
 		}
-	}
+	
+		public bool Save(string filename){
+			Directory.SetCurrentDirectory("..\\..\\..\\");
+			try{
+				using (StreamWriter sw = new StreamWriter(filename)){
+					var options = new JsonSerializerOptions();
+					sw.WriteLine(this.Key);
+					sw.WriteLine(this.Date);
 
+					foreach(var i in this.MyArray){
+						sw.Write(i + "\t");
+					}
+					sw.Write("\n");
+					foreach(var i in this.MyArray2){
+						sw.Write(i + "\t");
+					}
+				}
+				return true;
+			} catch (Exception e){
+				Console.WriteLine(e.Message);
+				return false;
+			}
+		}
+
+		public static bool Load(string filename, ref V1DataArray? ptr){
+			try{
+				using (StreamReader sr = new StreamReader(filename)){
+					if (ptr != null)
+					{
+						ptr.Key = sr.ReadLine()!;
+						ptr.Date = DateTime.Parse(sr.ReadLine()!);
+
+						string[] xValues = sr.ReadLine()!.Split('\t', StringSplitOptions.RemoveEmptyEntries);
+						ptr.MyArray = new double[xValues.Length];
+						for (int i = 0; i < xValues.Length; i++)
+						{
+							ptr.MyArray[i] = double.Parse(xValues[i]);
+						}
+
+						string[] complex_cord = sr.ReadLine()!.Split('\t', StringSplitOptions.RemoveEmptyEntries);
+						ptr.MyArray2 = new System.Numerics.Complex[complex_cord.Length];
+						for(int i = 0; i < complex_cord.Length; i++){
+							string[] numbers = complex_cord[i].Trim('<', '>').Split(';');
+							ptr.MyArray2[i] = new System.Numerics.Complex(double.Parse(numbers[0]), double.Parse(numbers[1]));
+						}
+					}
+				}
+				return true;
+			} catch (Exception e){
+				Console.WriteLine(e.Message);
+				return false;
+			}
+		}
+	}
 	class V1MainCollection : List<V1Data>, IEnumerable<V1Data> {
 		
 		public V1Data ? this[string str]{
@@ -394,10 +447,12 @@ namespace Programm {
 
 	class Program {
 		static void Main(string[] args) {
-			V1MainCollection collection = new V1MainCollection(3, 3);
-			foreach(var i in collection){
-				Console.WriteLine(i.ToLongString("F2"));
-			}
+			V1DataArray arr = new V1DataArray("key", DateTime.Now, new double[]{1, 2, 3, 4, 5}, V1DataArray.F);
+			arr.Save("file.json");
+
+			V1DataArray arr2 = new V1DataArray("key", DateTime.Now);
+			V1DataArray.Load("file.json",ref arr2!);
+			Console.WriteLine(arr2.ToLongString("F2"));
 		}
 	}
 }
