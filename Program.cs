@@ -388,7 +388,7 @@ namespace Programm {
 				double[] rand_data = new double[length_m_arr];
 				for(int j = 0; j < length_m_arr; j++)
 					rand_data[j] = rand.Next(1, 10);
-				this.Add(new V1DataArray($"key{rand.Next(1, 100)}", DateTime.Now, rand_data, V1DataArray.F_int));
+				this.Add(new V1DataArray($"key{rand.Next(1, 100)}", DateTime.Now));
 			}
 
 			for(int i = 0; i < nL; i++){
@@ -396,7 +396,7 @@ namespace Programm {
 				double[] rand_data = new double[length_m_list];
 				for(int j = 0; j < length_m_list; j++)
 					rand_data[j] = rand.Next(1, 10);
-				this.Add(new V1DataList($"key{rand.Next(1, 100)}", DateTime.Now, rand_data, V1DataList.F_int));
+				this.Add(new V1DataList($"key{rand.Next(1, 100)}", DateTime.Now));
 			}
 		}
 
@@ -447,14 +447,30 @@ namespace Programm {
 
 		public double FindMaxValue {
 			get {
-				return this.Count == 0 ? -1 : this.OfType<V1Data>()
+				int count = 0;
+				foreach (var data in this)
+				{
+					if (data.xLength != 0)
+					{
+						count++;
+					}
+				}
+				return (count == 0 || this.Count == 0) ? -1 : this.OfType<V1Data>()
 					.SelectMany(data => data)
 					.Max(item => item.Y1.Magnitude);
 			}
 		}
 		public IEnumerable<double>? ascending_querry {
 			get {
-				return this.Count == 0 ? null : this.OfType<V1Data>()
+				int count = 0;
+				foreach (var data in this)
+				{
+					if (data.xLength != 0)
+					{
+						count++;
+					}
+				}
+				return (count == 0 || this.Count == 0) ? null : this.OfType<V1Data>()
 					.SelectMany(data => data)
 					.GroupBy(item => item.X)
 					.Where(group => group.Count() > 1)
@@ -489,7 +505,7 @@ namespace Programm {
 		}
 
 		static void TestV1MainCollection() {
-			V1MainCollection collection = new V1MainCollection(2, 2);
+			V1MainCollection collection = new V1MainCollection(0, 0);
 			Console.WriteLine("Collection:");
 			Console.WriteLine(collection.ToLongString("F2"));
 
