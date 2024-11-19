@@ -387,7 +387,7 @@ namespace Programm {
 				int length_m_arr = rand.Next(2, 5);
 				double[] rand_data = new double[length_m_arr];
 				for(int j = 0; j < length_m_arr; j++)
-					rand_data[j] = rand.NextDouble() * 10;
+					rand_data[j] = rand.Next(1, 10);
 				this.Add(new V1DataArray($"key{rand.Next(1, 100)}", DateTime.Now, rand_data, V1DataArray.F_int));
 			}
 
@@ -395,7 +395,7 @@ namespace Programm {
 				int length_m_list = rand.Next(2, 5);
 				double[] rand_data = new double[length_m_list];
 				for(int j = 0; j < length_m_list; j++)
-					rand_data[j] = rand.NextDouble() * 10;
+					rand_data[j] = rand.Next(1, 10);
 				this.Add(new V1DataList($"key{rand.Next(1, 100)}", DateTime.Now, rand_data, V1DataList.F_int));
 			}
 		}
@@ -444,16 +444,65 @@ namespace Programm {
 			}
 			public void Dispose(){}
 		}
+
+		public double FindMaxValue {
+			get {
+				return this.Count == 0 ? -1 : this.OfType<V1Data>()
+					.SelectMany(data => data)
+					.Max(item => item.Y1.Magnitude);
+			}
+		}
+		public IEnumerable<double>? ascending_querry {
+			get {
+				return this.Count == 0 ? null : this.OfType<V1Data>()
+					.SelectMany(data => data)
+					.GroupBy(item => item.X)
+					.Where(group => group.Count() > 1)
+					.Select(group => group.Key)
+					.OrderBy(x => x);
+			}
+		}
 	}
 
 	class Program {
 		static void Main(string[] args) {
-			V1DataArray arr = new V1DataArray("key", DateTime.Now, new double[] {1, 2, 3, 4, 5, 6}, V1DataArray.F);
-			arr.Save("file.json");
+			//TestSaveLoad();
+			TestV1MainCollection();
+		}
 
-			V1DataArray arr2 = new V1DataArray("key", DateTime.Now);
-			V1DataArray.Load("file.json",ref arr2!);
-			Console.WriteLine(arr2.ToLongString("F2"));
+		static void TestSaveLoad() {
+			V1DataArray dataArray = new V1DataArray("testKey", DateTime.Now, new double[] { 1.0, 2.0, 3.0 }, V1DataArray.F);
+			string filename = "testData.txt";
+			if (dataArray.Save(filename)) {
+				Console.WriteLine("Data saved successfully.");
+			} else {
+				Console.WriteLine("Failed to save data.");
+			}
+
+			V1DataArray loadedDataArray = new V1DataArray("dummyKey", DateTime.Now);
+			if (V1DataArray.Load(filename, ref loadedDataArray)) {
+				Console.WriteLine("Data loaded successfully.");
+				Console.WriteLine(loadedDataArray.ToLongString("F2"));
+			} else {
+				Console.WriteLine("Failed to load data.");
+			}
+		}
+
+		static void TestV1MainCollection() {
+			V1MainCollection collection = new V1MainCollection(2, 2);
+			Console.WriteLine("Collection:");
+			Console.WriteLine(collection.ToLongString("F2"));
+
+			Console.WriteLine($"Max Value: {collection.FindMaxValue}");
+			var ascendingQuery = collection.ascending_querry;
+			if (ascendingQuery != null) {
+				Console.WriteLine("Ascending Query:");
+				foreach (var x in ascendingQuery) {
+					Console.WriteLine(x);
+				}
+			} else {
+				Console.WriteLine("No elements in ascending query.");
+			}
 		}
 	}
 }
