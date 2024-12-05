@@ -388,7 +388,7 @@ namespace Programm {
 				double[] rand_data = new double[length_m_arr];
 				for(int j = 0; j < length_m_arr; j++)
 					rand_data[j] = rand.Next(1, 10);
-				this.Add(new V1DataArray($"key{rand.Next(1, 100)}", DateTime.Now));
+				this.Add(new V1DataArray($"key{rand.Next(1, 100)}", DateTime.Now, rand_data, V1DataArray.F_int));
 			}
 
 			for(int i = 0; i < nL; i++){
@@ -396,7 +396,7 @@ namespace Programm {
 				double[] rand_data = new double[length_m_list];
 				for(int j = 0; j < length_m_list; j++)
 					rand_data[j] = rand.Next(1, 10);
-				this.Add(new V1DataList($"key{rand.Next(1, 100)}", DateTime.Now));
+				this.Add(new V1DataList($"key{rand.Next(1, 100)}", DateTime.Now, rand_data, V1DataList.F_int));
 			}
 		}
 
@@ -415,43 +415,15 @@ namespace Programm {
 			}
 			return ret_str;
 		}
-		IEnumerator<V1Data> IEnumerable<V1Data>.GetEnumerator() {
-			return new V1MainCollectionEnumerator(this);
-		}
-
-
-		public IEnumerator<DataItem> GetEnumerator() {
-			foreach (var data in this) {
-				foreach (var item in data) {
-					yield return item;
+		 
+		public IEnumerable<DataItem> DataItems {
+			get {
+				foreach(var item in this){
+					foreach(var node in item){
+						yield return node;
+					}
 				}
 			}
-		}
-
-		public class V1MainCollectionEnumerator : IEnumerator<V1Data> {
-			private V1MainCollection _collection;
-			private int _position = -1;
-			public V1MainCollectionEnumerator(V1MainCollection collection) {
-				_collection = collection;
-			}
-			public bool MoveNext(){
-				_position++;
-				return _position < _collection.Count;
-			}
-			public void Reset(){
-				_position = -1;
-			}
-			public V1Data Current{
-				get{
-					return _collection[_position];
-				}
-			}
-			object IEnumerator.Current {
-				get{
-					return Current;
-				}
-			}
-			public void Dispose(){}
 		}
 
 		public double FindMaxValue {
@@ -494,9 +466,9 @@ namespace Programm {
 			//TestSaveLoad();
 			//TestV1MainCollection();
 
-			V1MainCollection new_obj = new V1MainCollection(3, 4);
-			foreach(var item in new_obj){
-				Console.WriteLine(item.ToLongString("F2"));
+			V1MainCollection collection = new V1MainCollection(3, 3);
+			foreach(var item in collection.DataItems){
+				Console.WriteLine(item.ToString());
 			}
 		}
 
