@@ -419,6 +419,15 @@ namespace Programm {
 			return new V1MainCollectionEnumerator(this);
 		}
 
+
+		public IEnumerator<DataItem> GetEnumerator() {
+			foreach (var data in this) {
+				foreach (var item in data) {
+					yield return item;
+				}
+			}
+		}
+
 		public class V1MainCollectionEnumerator : IEnumerator<V1Data> {
 			private V1MainCollection _collection;
 			private int _position = -1;
@@ -483,7 +492,12 @@ namespace Programm {
 	class Program {
 		static void Main(string[] args) {
 			//TestSaveLoad();
-			TestV1MainCollection();
+			//TestV1MainCollection();
+
+			V1MainCollection new_obj = new V1MainCollection(3, 4);
+			foreach(var item in new_obj){
+				Console.WriteLine(item.ToLongString("F2"));
+			}
 		}
 
 		static void TestSaveLoad() {
